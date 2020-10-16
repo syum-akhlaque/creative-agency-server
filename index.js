@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors')
 const MongoClient = require('mongodb').MongoClient;
 const fileUpload = require('express-fileupload');
+const ObjectId = require('mongodb').ObjectId;
+
 
 const app = express()
 
@@ -16,7 +18,6 @@ require('dotenv').config();
 const dbName =  process.env.DB_NAME;
 const username = process.env.DB_USER;
 const password = process.env.DB_PASS;
-// collectionName = orders
 const uri = `mongodb+srv://${username}:${password}@cluster0.plwup.mongodb.net/${dbName}?retryWrites=true&w=majority`;
 
 
@@ -28,7 +29,7 @@ client.connect(err => {
   const adminCollection = client.db(dbName).collection("makeAdmin");
 
 
-  app.post('/addOrders', (req, res) => { //-----------to add order by customer----------------------------
+  app.post('/addOrders', (req, res) => { //-----------------to add order by customer----------------------------
     const file = req.files.file;
     const name = req.body.name;
     const serviceName = req.body.serviceName;
@@ -51,7 +52,7 @@ client.connect(err => {
  })
 
 
-  app.post('/addReviews', (req, res)=>{ //-----------to add reviews feedback by customer----------------------------
+  app.post('/addReviews', (req, res)=>{ //-----------------to add reviews/feedback by customer----------------------------
     const reviews = req.body;
     reviewsCollection.insertOne(reviews)
     .then(result =>{
@@ -59,7 +60,7 @@ client.connect(err => {
     })
   })
 
-  app.post('/addServices', (req, res) => { //-----------to add order by customer----------------------------
+  app.post('/addServices', (req, res) => { //-----------------to add order by customer----------------------------
     const file = req.files.file;
     const title = req.body.title;
     const description = req.body.description;
@@ -123,6 +124,20 @@ app.get('/services', (req, res)=>{    //-----------to get admin services , displ
     .toArray( (err, documents) => {
       res.send(documents.length>0)
     } )
+  })
+
+  app.patch('/update', (req,res)=>{    //----------- update order stsatus------------------------------
+
+    ordersCollection.updateOne(
+      {_id: ObjectId(req.body.id)}, //filter
+
+      { 
+        $set: { status: req.body.status } //update
+      }
+    )
+    .then(result => {   //option   
+      res.send(result.modifiedCount> 0)
+    })
   })
 
 
